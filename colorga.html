@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Pass the Circle</title>
+  <style>
+    body {
+      margin:0;
+      overflow:hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: rgb(53, 53, 53);
+    }
+    
+    canvas {
+      display:block;
+      background:#a7a1b6;
+      border: 3px solid #000000;
+      position: relative;
+      margin-top: 250px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 600;
+    canvas.height = 400;
+
+    const player = { x: 80, y: 200, r: 12, color: 'red' };
+    let gates = [], score = 0, lives = 3, frame = 0;
+
+    function spawnGate() {
+      let gapY = Math.random() * (canvas.height - 100) + 50;
+      gates.push({ x: canvas.width, gapY: gapY, gapH: 80 });
+    }
+
+    function update() {
+      frame++;
+      if (frame % 100 === 0) spawnGate();  
+
+      
+      if (keys['ArrowUp']) player.y -= 3;
+      if (keys['ArrowDown']) player.y += 3;
+      if (keys['ArrowLeft']) player.x -= 3;
+      if (keys['ArrowRight']) player.x += 3;
+
+      
+      gates.forEach((g, i) => {
+        g.x -= 2; 
+        if (g.x < player.x + player.r && g.x + 20 > player.x - player.r) {
+          if (player.y < g.gapY || player.y > g.gapY + g.gapH) {
+            
+            lives--;
+            gates.splice(i, 1);
+            if (lives <= 0) alert('Game Over! Score: ' + score);
+          } else {
+           
+            score += 10;
+            gates.splice(i, 1); 
+          }
+        }
+      });
+
+     
+      gates = gates.filter(g => g.x > -30);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+     
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      
+      gates.forEach(g => {
+        ctx.fillStyle = 'black';
+        ctx.fillRect(g.x, 0, 20, g.gapY); 
+        ctx.fillRect(g.x, g.gapY + g.gapH, 20, canvas.height - g.gapY - g.gapH); 
+      });
+
+
+      ctx.fillStyle = 'white';
+      ctx.font = '16px Arial';
+      ctx.fillText('Score: ' + score + ' Lives: ' + lives, 10, 15);
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    let keys = {};
+    window.addEventListener('keydown', e => keys[e.key] = true);
+    window.addEventListener('keyup', e => keys[e.key] = false);
+
+    loop();
+  </script>
+</body>
+</html>
